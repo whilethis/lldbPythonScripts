@@ -67,7 +67,7 @@ school.mainLocation.address.city' body
 # The actual python function that is bound to the lldb command.
 def jq_command(debugger, command, result, dict):
     # path to the jq executable. This is the only variable you need to change
-    jq_exe = "/Users/aijaz/local/bin/jq"
+    jq_exe = "/usr/local/bin/jq"
 
     # the filter will be written to this file and will be invoked via jq -f
     # The benefit of saving the filter in a file is that we don't have to
@@ -109,10 +109,14 @@ def jq_command(debugger, command, result, dict):
     # val_string is the value of the variable
     jq_prog = args[0]
     val = frame.var(args[1])
-    if options.nsstring:
-        val_string = val.GetObjectDescription()
-    else :
-        val_string = eval(val.GetObjectDescription())
+    
+    if val.GetTypeName() == "Foundation.Data":
+        val_string = outputDataAsString(debugger, args[1])
+    else:
+        if options.nsstring:
+            val_string = val.GetObjectDescription()
+        else :
+            val_string = eval(val.GetObjectDescription())
 
 
     # write the json file and jq program to temp files
@@ -140,6 +144,18 @@ def jq_command(debugger, command, result, dict):
 
     # not returning anything is akin to returning success
 
+
+def outputDataAsString(debugger, symbol):
+    interpreter = debugger.GetCommandInterpreter()
+    commandOutput = lldb.SBCommandReturnObject()
+    
+    commandString = "po String(data: %s, encoding: String.Encoding.utf8)!" % (symbol)
+    returnValue = interpreter.HandleCommand(commandString, commandOutput)
+    
+    dataOutput = commandOutput.GetOutput()
+    valString = eval(dataOutput)
+    
+    return valString
 
 def __lldb_init_module(debugger, dict):
     # This initializer is being run from LLDB in the embedded command interpreter
