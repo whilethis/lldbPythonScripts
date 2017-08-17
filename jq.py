@@ -160,7 +160,7 @@ def outputDataAsString(debugger, symbol):
     valString = None
     
     #Not quite sure why there are 3 newlines when the String creation returns nil
-    if dataOutput != "nil\n\n\n":
+    if str.strip(dataOutput) != "nil":
         valString = eval(dataOutput)
         
     return valString
