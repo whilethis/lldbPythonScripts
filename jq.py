@@ -112,6 +112,9 @@ def jq_command(debugger, command, result, dict):
     
     if val.GetTypeName() == "Foundation.Data":
         val_string = outputDataAsString(debugger, args[1])
+        if val_string is None:
+            print >>result, "Invalid or nil Data object"
+            return
     else:
         if options.nsstring:
             val_string = val.GetObjectDescription()
@@ -149,12 +152,17 @@ def outputDataAsString(debugger, symbol):
     interpreter = debugger.GetCommandInterpreter()
     commandOutput = lldb.SBCommandReturnObject()
     
-    commandString = "po String(data: %s, encoding: String.Encoding.utf8)!" % (symbol)
+    commandString = "po String(data: %s, encoding: String.Encoding.utf8)" % (symbol)
     returnValue = interpreter.HandleCommand(commandString, commandOutput)
     
     dataOutput = commandOutput.GetOutput()
-    valString = eval(dataOutput)
     
+    valString = None
+    
+    #Not quite sure why there are 3 newlines when the String creation returns nil
+    if dataOutput != "nil\n\n\n":
+        valString = eval(dataOutput)
+        
     return valString
 
 def __lldb_init_module(debugger, dict):
