@@ -161,6 +161,10 @@ def outputDataAsString(debugger, symbol):
     
     #Not quite sure why there are 3 newlines when the String creation returns nil
     if str.strip(dataOutput) != "nil":
+        commandString = "po String(data: %s, encoding: String.Encoding.utf8)!" % (symbol)
+        returnValue = interpreter.HandleCommand(commandString, commandOutput)
+        dataOutput = commandOutput.GetOutput()
+        
         valString = eval(dataOutput)
         
     return valString
